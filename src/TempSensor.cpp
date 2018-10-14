@@ -27,3 +27,8 @@ void TempSensor::poll_sensor() {
 
     temperature = realTemp;
 };
+
+void TempSensor::update(CarState &car) {
+    poll_sensor();
+    car.setIndoorTemperature(temperature);
+};

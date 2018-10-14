@@ -5,6 +5,8 @@
 
 #include "CAN_config.h"
 
+#include "CarState.hpp"
+
 class LeafCAN {
 private:
     const float kwh_per_gid = KWH_PER_GID;
@@ -29,7 +31,7 @@ public:
     void startClimateControl();
     void stopClimateControl();
 
-    void update();
+    void update(CarState &car);
 
     void enableSLCAN();
     void disableSLCAN();

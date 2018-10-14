@@ -3,14 +3,11 @@
 #include "GPS.hpp"
 #include "functions.hpp"
 
-GPS::GPS( HardwareSerial &serial_dev, int baudrate, int serial_config, int rx_pin, int tx_pin, int expectedUpdateMS ) : serial_device(serial_dev) {
+GPS::GPS( HardwareSerial &serial_dev, int baudrate, int serial_config, int rx_pin, int tx_pin ) : serial_device(serial_dev) {
     serial_device.begin(baudrate, serial_config, rx_pin, tx_pin);
-
-    gpsTimer = xTimerCreate( "gpsTimer", expectedUpdateMS / portTICK_PERIOD_MS, pdFALSE, NULL, timerCallbackThatDoesNothing );
-    xTimerStart(gpsTimer, 10);
 }
 
-void GPS::update() {
+void GPS::update(CarState &car) {
     // Interpret the data coming from the GPS module
     while ( serial_device.available() ) {
         gps.encode( serial_device.read() );
@@ -20,12 +17,14 @@ void GPS::update() {
     if ( gps.speed.isUpdated() ) {
         float speed_tmp = gps.speed.kmph();
         speed = speed_tmp;
+        car.setGPSSpeed( speed );
     }
 
     // Update the altitude
     if ( gps.altitude.isUpdated() ) {
         float altitude_tmp = gps.altitude.meters();
         altitude = altitude_tmp;
+        car.setGPSAltitude( altitude );
     }
 
     // Update HDOP
@@ -34,7 +33,7 @@ void GPS::update() {
         hdop = hdop_tmp;
     }
 
-    // Update the location and reset the GPS timeout counter
+    // Update the location
     if ( gps.location.isUpdated() ) {
         float longitude_tmp = gps.location.lng();
         float latitude_tmp  = gps.location.lat();
@@ -42,16 +41,8 @@ void GPS::update() {
         longitude = longitude_tmp;
         latitude = latitude_tmp;
 
-        xTimerReset( gpsTimer, 10 );
-    }
-}
-
-bool GPS::isValid() {
-    if ( xTimerIsTimerActive( gpsTimer ) == pdTRUE ) {
-        return true;
-    }
-    else {
-        return false;
+        car.setGPSLongitude( longitude );
+        car.setGPSLatitude( latitude );
     }
 }
 

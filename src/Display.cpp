@@ -10,7 +10,7 @@ Display::Display() : tft(), img(&tft) {
     tft.fillScreen( TFT_BLACK );
 }
 
-void Display::draw_display() {
+void Display::draw_display(CarState &car) {
 
     img.setColorDepth(8);
     img.createSprite( TFT_HEIGHT, TFT_WIDTH );
@@ -21,9 +21,11 @@ void Display::draw_display() {
     // *******************
     // Speed display
     // *******************
+    int speed = (int)car.getSpeed();
     img.setFreeFont( &FreeSansBold24pt7b );
     img.setTextDatum( MR_DATUM );
-    if ( speedIsValid ) {
+    // If speed is valid
+    if ( car.gps_is_valid() && speed < 500 ) {
         img.drawNumber(speed, 85, 16);
     }
     else {
@@ -34,17 +36,34 @@ void Display::draw_display() {
     img.setTextDatum( ML_DATUM );
     img.drawString( "km / h", 95, 16 );
 
-
     // *******************
-    // Battery % display
+    // Economy display (kWh/100km)
     // *******************
     img.setFreeFont( &FreeSansBold12pt7b );
     img.setTextDatum( MR_DATUM );
-    img.drawNumber(batteryPercent, 40, 58);
 
-    img.setFreeFont( &FreeSans9pt7b );
+    float power = car.getBatteryPowerKW();
+
+    if ( power > 0 ) {
+        // Charging
+        img.setTextColor( TFT_GREEN );
+    }
+
+    if ( car.gps_is_valid() && speed > 0 && speed < 500 ) {
+        float economy = car.getEconomyKWHperKMAverage() * 100;
+        img.drawFloat(economy, 1, 44, 58);
+    }
+    else {
+        img.drawString("---", 44, 58);
+    }
+
+    img.setTextFont(1);
     img.setTextDatum( ML_DATUM );
-    img.drawString("\%", 43, 58);
+    img.drawString("kWh", 53, 55);
+    img.drawString("100km", 47, 65);
+    img.drawLine(49, 59, 74, 59, TFT_WHITE);
+
+    img.setTextColor( TFT_WHITE );
 
 
     // *******************
@@ -52,11 +71,12 @@ void Display::draw_display() {
     // *******************
     img.setFreeFont( &FreeSansBold12pt7b );
     img.setTextDatum( MR_DATUM );
-    img.drawFloat(batteryKWH, 1, 121, 58);
+    img.drawFloat(car.getBatteryStoredKWH(), 1, 130, 58);
 
     img.setFreeFont( &FreeSans9pt7b );
+    img.setTextFont(1);
     img.setTextDatum( ML_DATUM );
-    img.drawString("kWh", 124, 58);
+    img.drawString("kWh", 133, 65);
 
 
     // *******************
@@ -64,7 +84,7 @@ void Display::draw_display() {
     // *******************
     img.setFreeFont( &FreeSansBold12pt7b );
     img.setTextDatum( MR_DATUM );
-    img.drawNumber( temperature, 40, 90 );
+    img.drawNumber( car.getIndoorTemperature(), 40, 90 );
 
     img.setFreeFont( &FreeSans9pt7b );
     img.setTextDatum( ML_DATUM );
@@ -77,19 +97,19 @@ void Display::draw_display() {
     // *******************
     img.setFreeFont( &FreeSansBold12pt7b );
     img.setTextDatum( MR_DATUM );
-    if ( batteryKW > 0 ) {
+    if ( power > 0 ) {
         // Charging
         img.setTextColor( TFT_GREEN );
-        img.drawFloat( batteryKW, 1, 121, 90 );
+        img.drawFloat( power, 1, 130, 90 );
     }
     else {
         // Discharging
-        img.drawFloat( -batteryKW, 1, 121, 90 );
+        img.drawFloat( -power, 1, 130, 90 );
     }
 
     img.setFreeFont( &FreeSans9pt7b );
     img.setTextDatum( ML_DATUM );
-    img.drawString( "kW", 124, 90 );
+    img.drawString( "kW", 133, 90 );
     img.setTextColor( TFT_WHITE );
 
 
@@ -110,30 +130,6 @@ void Display::draw_display() {
 }
 
 
-void Display::setSpeed(float spd) {
-    speed = spd;
-}
-
-void Display::setBatteryPercent(float batt) {
-    batteryPercent = batt;
-}
-
-void Display::setBatteryKWH(float kwh) {
-    batteryKWH = kwh;
-}
-
-void Display::setBatteryKW(float kw) {
-    batteryKW = kw;
-}
-
-void Display::setTemperature(float temp) {
-    temperature = temp;
-}
-
 void Display::setMessage(String msg) {
     message = msg;
-}
-
-void Display::setSpeedIsValid(bool state) {
-    speedIsValid = state;
 }

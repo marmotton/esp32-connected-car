@@ -1,10 +1,11 @@
 #ifndef GPS_HPP
 #define GPS_HPP
 
-#include <time.h>
 #include <HardwareSerial.h>
 
 #include <TinyGPS++.h>
+
+#include "CarState.hpp"
 
 class GPS {
 private:
@@ -24,9 +25,9 @@ private:
     HardwareSerial &serial_device;
 
 public:
-    GPS( HardwareSerial &serial_dev, int baudrate, int serial_config, int rx_pin, int tx_pin, int expectedUpdateMS );
+    GPS( HardwareSerial &serial_dev, int baudrate, int serial_config, int rx_pin, int tx_pin );
 
-    void update();
+    void update(CarState &car);
 
     bool isValid();
 

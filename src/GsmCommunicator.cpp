@@ -3,7 +3,7 @@
 #include "GsmCommunicator.hpp"
 #include "config.h"
 
-GsmCommunicator::GsmCommunicator(HardwareSerial &ser, int rxpin, int txpin) : gsm_serial(ser), modem(gsm_serial), client(modem), mqtt(client) {
+GsmCommunicator::GsmCommunicator(HardwareSerial &ser, int rxpin, int txpin, CarState &carstate) : gsm_serial(ser), modem(gsm_serial), client(modem), mqtt(client), car(carstate) {
     // Setup serial port
     gsm_serial.begin(9600, SERIAL_8N1, rxpin, txpin);
 }
@@ -110,16 +110,33 @@ void GsmCommunicator::mqttLoop() {
 
 
 void GsmCommunicator::publish() {
-    mqtt.publish( "env200/indoorTemp", String(indoor_temperature, 1).c_str() );
+    mqtt.publish( "env200/indoorTemp", String(car.getIndoorTemperature(), 1).c_str() );
 
-    mqtt.publish( "env200/batteryKWH", String(battery_kwh, 2).c_str() );
+    mqtt.publish( "env200/batteryKWH", String(car.getBatteryStoredKWH(), 2).c_str() );
 
-    mqtt.publish( "env200/lat", String(gps_lat, 6).c_str() );
-    mqtt.publish( "env200/lon", String(gps_lon, 6).c_str() );
+    mqtt.publish( "env200/lat", String(car.getLatitude(), 6).c_str() );
+    mqtt.publish( "env200/lon", String(car.getLongitude(), 6).c_str() );
 
     mqtt.publish( "env200/balance", String(balance_chf, 2).c_str() );
 }
 
+void GsmCommunicator::updateLocation() {
+    String gsmloc = modem.getGsmLocation();
+
+    int latStartIndex = gsmloc.indexOf(',') + 1;
+    int latStopIndex  = gsmloc.indexOf(',', latStartIndex) - 1;
+    int lonStartIndex = gsmloc.indexOf(',', latStartIndex) + 1;
+    int lonStopIndex  = gsmloc.indexOf(',', lonStartIndex) - 1;
+
+    float lat_tmp = gsmloc.substring(latStartIndex, latStopIndex).toFloat();
+    float lon_tmp = gsmloc.substring(lonStartIndex, lonStopIndex).toFloat();
+
+    gsm_lat = lat_tmp;
+    gsm_lon = lon_tmp;
+
+    car.setGSMLatitude(gsm_lat);
+    car.setGSMLongitude(gsm_lon);
+}
 
 float GsmCommunicator::getBalanceCHF() {
     return balance_chf;
@@ -128,29 +145,3 @@ float GsmCommunicator::getBalanceCHF() {
 String GsmCommunicator::getBalanceString() {
     return balance_str;
 }
-
-void GsmCommunicator::setLatitude(float lat) {
-    gps_lat = lat;
-}
-
-void GsmCommunicator::setLongitude(float lon) {
-    gps_lon = lon;
-}
-
-void GsmCommunicator::setAltitude(float alt) {
-    gps_alt = alt;
-}
-
-void GsmCommunicator::setBatteryKWH(float kwh) {
-    battery_kwh = kwh;
-}
-
-void GsmCommunicator::setIndoorTemperature(float temp) {
-    indoor_temperature = temp;
-}
-
-
-/*
-String gsmLoc = modem.getGsmLocation();
-
-*/

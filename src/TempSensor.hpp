@@ -1,6 +1,8 @@
 #ifndef TEMPSENSOR_HPP
 #define TEMPSENSOR_HPP
 
+#include "CarState.hpp"
+
 class TempSensor {
 private:
     float temperature;
@@ -11,6 +13,7 @@ public:
 
     float getTemperature();
     void poll_sensor();
+    void update(CarState &car);
 };
 
 #endif

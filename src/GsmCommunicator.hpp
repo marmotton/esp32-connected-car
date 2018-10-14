@@ -5,6 +5,8 @@
 #include "../lib/TinyGSM/src/TinyGsmClient.h"
 #include <PubSubClient.h>
 
+#include "CarState.hpp"
+
 class GsmCommunicator{
 private:
     HardwareSerial &gsm_serial;
@@ -23,22 +25,11 @@ private:
     float gsm_lat;
     float gsm_lon;
 
-    // Temperature sensor
-    float indoor_temperature;
-
-    // Car data
-    float battery_kwh;
-    bool doors_are_locked;
-
-    // GPS data
-    time_t last_fix;
-    float gps_lat;
-    float gps_lon;
-    float gps_alt;
-    float hdop;
+    // State of the car (position, temperature, battery...)
+    CarState &car;
 
 public:
-    GsmCommunicator(HardwareSerial &ser, int rxpin, int txpin);
+    GsmCommunicator(HardwareSerial &ser, int rxpin, int txpin, CarState &carstate);
 
     void init();
 
@@ -51,16 +42,7 @@ public:
     float getLiPoVoltage();
     float getLiPoPercent();
 
-    void setIndoorTemperature(float temp);
-
-    void setBatteryKWH(float kwh);
-    void setDoorsAreLocked(bool doorsAreLocked);
-
-    void setLatitude(float lat);
-    void setLongitude(float lon);
-    void setAltitude(float alt);
-    void setHDOP(float hdop);
-    void setLastFix(time_t lastFix);
+    void updateLocation();
 
     void publish();
 };

@@ -20,7 +20,7 @@ LeafCAN::LeafCAN(gpio_num_t rx_pin, gpio_num_t tx_pin, CAN_speed_t speed) {
     ESP32Can.CANInit();
 }
 
-void LeafCAN::update() {
+void LeafCAN::update(CarState &car) {
     CAN_frame_t canRxFrame;
 
     if ( xQueueReceive( CAN_cfg.rx_queue, &canRxFrame, 50 / portTICK_PERIOD_MS ) ) {
@@ -40,6 +40,8 @@ void LeafCAN::update() {
             // Extract the 10 first bits of the message (byte[0] + 2 first bits of byte[1])
             int gids_tmp = ( canRxFrame.data.u8[0] << 2 ) | ( canRxFrame.data.u8[1] >> 6 );
             gids = gids_tmp;
+
+            car.setBatteryStoredKWH( getBatteryStoredKWH() );
         }
 
         // Update battery power
@@ -49,15 +51,14 @@ void LeafCAN::update() {
 
             float power_tmp = 0.001 * current * voltage;
             batteryPower = power_tmp;
-        }
 
-        // TODO: Update doors locked state
+            car.setBatteryPowerKW( batteryPower );
+        }
 
         // TODO: Update charge cable state
 
         // TODO: Update climate control state
 
-        //
     }
 }
 
