@@ -1,6 +1,8 @@
 # esp32-connected-car
 Connecting a Nissan e-NV200 using MQTT / GSM.
 
+**This software is overly complicated, check out the new version here:** https://github.com/marmotton/connected-car
+
 ## Hardware
 
 * Main board: Lolin D32 Pro [AliExpress link](https://www.aliexpress.com/item/LOLIN-D32-Pro-V2-0-0-wifi-bluetooth-board-based-ESP-32-esp32-Rev1-ESP32-WROVER/32883116057.html)
